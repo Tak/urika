@@ -13,6 +13,31 @@ require 'uri'
 
 class Urika
   URIRE = /https?:\/\/[^\s]+/
+  YOUTUDOTBERE = /^youtu.be\/(?<video>[\w\d]+)(\?(?<query>.*))?/
+
+  # youtu.be/meh => youtube.com/watch?v=meh
+  def self.expand_youtudotbe(uri_string)
+    match = YOUTUDOTBERE.match(uri_string)
+    return uri_string unless match
+
+    captures = match.names.zip(match.captures).to_h()
+    return "youtube.com/watch?v=#{captures['video']}"
+  end
+
+  def self.sanitize(uri)
+    # Probably suboptimal performance
+    sanitized = "#{uri.host}#{uri.path}"
+    sanitized.gsub!(/\/amp(\/)?/, '\1') # fuck amp
+    sanitized.gsub!(/\/$/, '') # strip trailing slash for consistency between posters
+    sanitized = expand_youtudotbe(sanitized)
+    return sanitized unless uri.query
+
+    queryJoiner = /\?/.match(sanitized) ? '&' : '?'
+    query = uri.query
+    query.gsub!(/&?utm_[\w]+=[^&]*/, '') # utm_whatever is irrelevant
+    query.gsub!(/&?(aqs|sourceid|ie|redirect_source|feature)=[^&]*/, '') # don't care about these either
+    return uri.query.empty? ? sanitized : "#{sanitized}#{queryJoiner}#{query}"
+  end
 
   # Gets the first http[s] url from a string
   # param message The string to be searched
@@ -21,18 +46,7 @@ class Urika
     return nil unless (match = URIRE.match(message))
 
     uri = URI.parse(match.to_s())
-    return nil unless (uri && (uri.kind_of?(URI::HTTP) || uri.kind_of?(URI::HTTPS)))
-
-    # Probably suboptimal performance
-    sanitized = "#{uri.host}#{uri.path}"
-    sanitized.gsub!(/\/amp(\/)?/, '\1') # fuck amp
-    sanitized.gsub!(/\/$/, '') # strip trailing slash for consistency between posters
-    return sanitized unless uri.query
-
-    query = uri.query
-    query.gsub!(/&?utm_[\w]+=[^&]*/, '') # utm_whatever is irrelevant
-    query.gsub!(/&?(aqs|sourceid|ie|redirect_source)=[^&]*/, '') # don't care about these either
-    return uri.query.empty? ? sanitized : "#{sanitized}?#{query}"
+    return (uri && (uri.kind_of?(URI::HTTP) || uri.kind_of?(URI::HTTPS))) ? sanitize(uri) : nil
   end # get_first_url
 end
 
@@ -56,6 +70,9 @@ if (__FILE__ == $0)
           [ 'htp://google.com https://google.com ttp://google.com', 'google.com' ],
           [ 'htp://google.com http://google.com/amp?redirect_source=google.com', 'google.com' ],
           [ 'https://www.google.dk/amp/search/amp?q=foo+bar+baz&oq=foo+bar+baz&aqs=chrome..69i57j0l5.1283j0j7&sourceid=chrome&ie=UTF-8&utm_source=meh', 'www.google.dk/search?q=foo+bar+baz&oq=foo+bar+baz' ],
+          [ 'Check out https://youtu.be/ZpAYnVJX9CY because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY' ],
+          [ 'Check out https://youtu.be/ZpAYnVJX9CY?t=60 because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY&t=60' ],
+          [ 'Check out https://youtube.com/watch?v=ZpAYnVJX9CY&t=60&feature=youtu.be because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY&t=60' ],
       ]
 
       uris.each { |pair|
