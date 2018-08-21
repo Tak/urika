@@ -43,11 +43,23 @@ class Urika
   # param message The string to be searched
   # returns The first url (sanitized), or nil
   def self.get_first_url(message)
-    return nil unless (match = URIRE.match(message))
-
-    uri = URI.parse(match.to_s())
-    return (uri && (uri.kind_of?(URI::HTTP) || uri.kind_of?(URI::HTTPS))) ? sanitize(uri) : nil
+    urls = get_all_urls(message)
+    urls.empty? ? nil : urls[0]
   end # get_first_url
+
+  def self.get_all_urls(message)
+    urls = message.scan(URIRE)
+    return [] if !urls
+
+    urls.inject([]) do |memo, url|
+      uri = URI.parse(url)
+      if uri && (uri.kind_of?(URI::HTTP) || uri.kind_of?(URI::HTTPS))
+        memo << sanitize(uri)
+      else
+        memo
+      end
+    end
+  end
 end
 
 if (__FILE__ == $0)
@@ -80,5 +92,17 @@ if (__FILE__ == $0)
         assert_equal(pair[1], url, "Unexpected url #{url} for input #{pair[0]}")
       }
     end # test_uri_validation
+
+    def test_all_urls_found
+      messages = [
+        [ 'Check out https://youtu.be/ZpAYnVJX9CY and https://youtu.be/ZpAYnVJX9CY?t=60 because why not??!', 2 ],
+        [ 'Check out https://youtu.be/ZpAYnVJX9CY?t=60 because why not??!', 1 ],
+        [ 'Check out youtube because why not??!', 0 ],
+      ]
+
+      messages.each do |pair|
+        assert_equal(pair[1], Urika.get_all_urls(pair[0]).size, "Incorrect url count #{pair[1]} for message #{pair[0]}")
+      end
+    end
   end
 end
