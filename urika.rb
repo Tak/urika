@@ -48,6 +48,7 @@ class Urika
   end # get_first_url
 
   def self.get_all_urls(message)
+    return [] if !message
     urls = message.scan(URIRE)
     return [] if !urls
 
