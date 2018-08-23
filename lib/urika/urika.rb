@@ -11,7 +11,7 @@
 
 require 'uri'
 
-class Urika
+module Urika
   URIRE = /https?:\/\/[^\s]+/
   YOUTUDOTBERE = /^youtu.be\/(?<video>[\w\d]+)(\?(?<query>.*))?/
 
@@ -58,51 +58,6 @@ class Urika
         memo << sanitize(uri)
       else
         memo
-      end
-    end
-  end
-end
-
-if (__FILE__ == $0)
-  require 'test/unit'
-
-  class UrikaTest < Test::Unit::TestCase
-    def setup()
-    end # setup
-
-    def test_uri_validation
-      uris = [
-          [ 'http://google.com', 'google.com' ],
-          [ 'https://google.com/', 'google.com' ],
-          [ 'htp://google.com', nil ],
-          [ 'ftp://google.com', nil ],
-          [ 'I would like you to see http://google.com', 'google.com' ],
-          [ 'I would like you to see https://google.com', 'google.com' ],
-          [ 'I would like you to see htp://google.com', nil ],
-          [ 'I would like you to see ftp://google.com', nil ],
-          [ 'htp://google.com https://google.com ttp://google.com', 'google.com' ],
-          [ 'htp://google.com http://google.com/amp?redirect_source=google.com', 'google.com' ],
-          [ 'https://www.google.dk/amp/search/amp?q=foo+bar+baz&oq=foo+bar+baz&aqs=chrome..69i57j0l5.1283j0j7&sourceid=chrome&ie=UTF-8&utm_source=meh', 'www.google.dk/search?q=foo+bar+baz&oq=foo+bar+baz' ],
-          [ 'Check out https://youtu.be/ZpAYnVJX9CY because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY' ],
-          [ 'Check out https://youtu.be/ZpAYnVJX9CY?t=60 because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY&t=60' ],
-          [ 'Check out https://youtube.com/watch?v=ZpAYnVJX9CY&t=60&feature=youtu.be because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY&t=60' ],
-      ]
-
-      uris.each { |pair|
-        url = Urika.get_first_url(pair[0])
-        assert_equal(pair[1], url, "Unexpected url #{url} for input #{pair[0]}")
-      }
-    end # test_uri_validation
-
-    def test_all_urls_found
-      messages = [
-        [ 'Check out https://youtu.be/ZpAYnVJX9CY and https://youtu.be/ZpAYnVJX9CY?t=60 because why not??!', 2 ],
-        [ 'Check out https://youtu.be/ZpAYnVJX9CY?t=60 because why not??!', 1 ],
-        [ 'Check out youtube because why not??!', 0 ],
-      ]
-
-      messages.each do |pair|
-        assert_equal(pair[1], Urika.get_all_urls(pair[0]).size, "Incorrect url count #{pair[1]} for message #{pair[0]}")
       end
     end
   end
