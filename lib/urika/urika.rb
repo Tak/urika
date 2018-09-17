@@ -12,7 +12,7 @@
 require 'uri'
 
 module Urika
-  URIRE = /https?:\/\/[^\s]+/
+  URIRE = /https?:\/\/[^\s><]+/
   YOUTUDOTBERE = /^youtu.be\/(?<video>[\w\d]+)(\?(?<query>.*))?/
 
   # youtu.be/meh => youtube.com/watch?v=meh
