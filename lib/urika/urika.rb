@@ -28,6 +28,7 @@ module Urika
     # Probably suboptimal performance
     sanitized = "#{uri.host}#{uri.path}"
     sanitized.gsub!(/\/amp(\/)?/, '\1') # fuck amp
+    sanitized.gsub!(/\/+/, '/') # collapse adjacent slashes
     sanitized.gsub!(/\/$/, '') # strip trailing slash for consistency between posters
     sanitized = expand_youtudotbe(sanitized)
     return sanitized unless uri.query
