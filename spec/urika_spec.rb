@@ -45,4 +45,12 @@ RSpec.describe Urika do
     ]
     messages.each{ |pair| expect(Urika.get_all_urls(pair[0])).to eq(pair[1]) }
   end
+
+  it 'remaps invidious urls to youtube' do
+    messages = [
+        [ 'Check out https://www.invidio.us/watch?v=fT-uWOVP5q0 because why not??!', ['youtube.com/watch?v=fT-uWOVP5q0'] ],
+        [ 'Check out https://invidio.us/watch?v=fT-uWOVP5q0 because why not??!', ['youtube.com/watch?v=fT-uWOVP5q0'] ],
+    ]
+    messages.each{ |pair| expect(Urika.get_all_urls(pair[0])).to eq(pair[1]) }
+  end
 end

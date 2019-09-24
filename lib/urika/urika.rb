@@ -13,7 +13,9 @@ require 'uri'
 
 module Urika
   URIRE = /https?:\/\/[^\s><]+/
-  YOUTUDOTBERE = /^youtu.be\/(?<video>[\w\d-]+)(\?(?<query>.*))?/
+  YOUTUDOTBERE = /^youtu\.be\/(?<video>[\w\d-]+)(\?(?<query>.*))?/
+  INVIDIOUS = 'invidio.us/watch'
+  YOUTUBE = 'youtube.com/watch'
 
   # youtu.be/meh => youtube.com/watch?v=meh
   def self.expand_youtudotbe(uri_string)
@@ -21,7 +23,15 @@ module Urika
     return uri_string unless match
 
     captures = match.names.zip(match.captures).to_h()
-    return "youtube.com/watch?v=#{captures['video']}"
+    return "#{YOUTUBE}?v=#{captures['video']}"
+  end
+
+  def self.remap_invidious(uri_string)
+    if INVIDIOUS == uri_string
+      return YOUTUBE
+    else
+      return uri_string
+    end
   end
 
   def self.sanitize(uri)
@@ -32,6 +42,7 @@ module Urika
     sanitized.gsub!(/\/+/, '/') # collapse adjacent slashes
     sanitized.gsub!(/\/$/, '') # strip trailing slash for consistency between posters
     sanitized = expand_youtudotbe(sanitized)
+    sanitized = remap_invidious(sanitized)
     return sanitized unless uri.query
 
     queryJoiner = /\?/.match(sanitized) ? '&' : '?'
