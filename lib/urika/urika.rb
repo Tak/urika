@@ -13,7 +13,7 @@ require 'uri'
 
 module Urika
   URIRE = /https?:\/\/[^\s><]+/
-  YOUTUDOTBERE = /^youtu.be\/(?<video>[\w\d]+)(\?(?<query>.*))?/
+  YOUTUDOTBERE = /^youtu.be\/(?<video>[\w\d-]+)(\?(?<query>.*))?/
 
   # youtu.be/meh => youtube.com/watch?v=meh
   def self.expand_youtudotbe(uri_string)
@@ -27,6 +27,7 @@ module Urika
   def self.sanitize(uri)
     # Probably suboptimal performance
     sanitized = "#{uri.host}#{uri.path}"
+    sanitized.gsub!(/^www\./i, '') # strip leading "www."
     sanitized.gsub!(/\/amp(\/)?/, '\1') # fuck amp
     sanitized.gsub!(/\/+/, '/') # collapse adjacent slashes
     sanitized.gsub!(/\/$/, '') # strip trailing slash for consistency between posters

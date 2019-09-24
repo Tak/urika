@@ -17,12 +17,12 @@ RSpec.describe Urika do
         [ 'I would like you to see ftp://google.com', nil ],
         [ 'htp://google.com https://google.com ttp://google.com', 'google.com' ],
         [ 'htp://google.com http://google.com/amp?redirect_source=google.com', 'google.com' ],
-        [ 'https://www.google.dk/amp/search/amp?q=foo+bar+baz&oq=foo+bar+baz&aqs=chrome..69i57j0l5.1283j0j7&sourceid=chrome&ie=UTF-8&utm_source=meh', 'www.google.dk/search?q=foo+bar+baz&oq=foo+bar+baz' ],
+        [ 'https://www.google.dk/amp/search/amp?q=foo+bar+baz&oq=foo+bar+baz&aqs=chrome..69i57j0l5.1283j0j7&sourceid=chrome&ie=UTF-8&utm_source=meh', 'google.dk/search?q=foo+bar+baz&oq=foo+bar+baz' ],
         [ 'Check out https://youtu.be/ZpAYnVJX9CY because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY' ],
         [ 'Check out https://youtu.be/ZpAYnVJX9CY?t=60 because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY&t=60' ],
         [ 'Check out https://youtube.com/watch?v=ZpAYnVJX9CY&t=60&feature=youtu.be because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY&t=60' ],
         [ 'Check out https://youtu.be///ZpAYnVJX9CY because why not??!', 'youtube.com/watch?v=ZpAYnVJX9CY' ],
-        [ 'https://www.google.dk/amp///search//amp?q=foo+bar+baz&oq=foo+bar+baz&aqs=chrome..69i57j0l5.1283j0j7&sourceid=chrome&ie=UTF-8&utm_source=meh', 'www.google.dk/search?q=foo+bar+baz&oq=foo+bar+baz' ],
+        [ 'https://www.google.dk/amp///search//amp?q=foo+bar+baz&oq=foo+bar+baz&aqs=chrome..69i57j0l5.1283j0j7&sourceid=chrome&ie=UTF-8&utm_source=meh', 'google.dk/search?q=foo+bar+baz&oq=foo+bar+baz' ],
     ]
 
     uris.each { |pair| expect(Urika.get_first_url(pair[0])).to eq(pair[1]) }
@@ -36,5 +36,13 @@ RSpec.describe Urika do
     ]
 
     messages.each{ |pair| expect(Urika.get_all_urls(pair[0]).size).to eq(pair[1]) }
+  end
+
+  it 'collapses youtube urls' do
+    messages = [
+      [ 'Check out https://www.youtube.com/watch?v=fT-uWOVP5q0 because why not??!', ['youtube.com/watch?v=fT-uWOVP5q0'] ],
+      [ 'Check out https://youtu.be/fT-uWOVP5q0 because why not??!', ['youtube.com/watch?v=fT-uWOVP5q0'] ],
+    ]
+    messages.each{ |pair| expect(Urika.get_all_urls(pair[0])).to eq(pair[1]) }
   end
 end
